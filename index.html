@@ -417,7 +417,7 @@
       <p>Lingr transforms your desk into a safe, low-pressure social starting point.</p>
       <div class="hero">
         <h2>Today in your campus zone</h2>
-        <div class="count"><span id="liveCount">1,286</span> students live on Lingr</div>
+        <div class="count"><span id="liveCount">1,286</span> students active on Lingr</div>
       </div>
       <div class="split">
         <button class="btn primary" data-go="1">Start Journey</button>
@@ -547,7 +547,7 @@
 
     let currentScreen = 0;
     let selectedInterests = [];
-    let liveStudents = 1286;
+    let activeStudentCount = 1286;
     let chatSecondsLeft = 15 * 60;
     let waveAccepted = false;
     let liveCounterInterval;
@@ -627,9 +627,9 @@
       clearInterval(liveCounterInterval);
       liveCounterInterval = setInterval(() => {
         if (currentScreen !== 0) return;
-        liveStudents += Math.random() > 0.5 ? 1 : -1;
-        liveStudents = Math.max(1200, Math.min(1400, liveStudents));
-        liveCount.textContent = liveStudents.toLocaleString();
+        activeStudentCount += Math.random() > 0.5 ? 1 : -1;
+        activeStudentCount = Math.max(1200, Math.min(1400, activeStudentCount));
+        liveCount.textContent = activeStudentCount.toLocaleString();
       }, 2200);
     }
 

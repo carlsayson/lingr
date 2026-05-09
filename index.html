@@ -550,6 +550,8 @@
     let liveStudents = 1286;
     let chatSecondsLeft = 15 * 60;
     let waveAccepted = false;
+    let liveCounterInterval;
+    let chatTimerInterval;
 
     function formatTimer(totalSeconds) {
       const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
@@ -616,13 +618,15 @@
       const seed = selectedInterests[0] || 'campus life';
       chatWindow.innerHTML = [
         `<div class="bubble in">hey! saw we both picked ${seed.toLowerCase()} 👋</div>`,
-        `<div class="bubble out">yes! i\'m working on a quick project around it.</div>`,
+        `<div class="bubble out">yes! i'm working on a quick project around it.</div>`,
         `<div class="bubble in">same here. want to swap ideas before class?</div>`
       ].join('');
     }
 
     function startLiveCounter() {
-      setInterval(() => {
+      clearInterval(liveCounterInterval);
+      liveCounterInterval = setInterval(() => {
+        if (currentScreen !== 0) return;
         liveStudents += Math.random() > 0.5 ? 1 : -1;
         liveStudents = Math.max(1200, Math.min(1400, liveStudents));
         liveCount.textContent = liveStudents.toLocaleString();
@@ -630,10 +634,12 @@
     }
 
     function startChatTimer() {
-      setInterval(() => {
+      clearInterval(chatTimerInterval);
+      chatTimerInterval = setInterval(() => {
         if (currentScreen !== 6) return;
         chatSecondsLeft = Math.max(0, chatSecondsLeft - 1);
         document.getElementById('chatTimer').textContent = formatTimer(chatSecondsLeft);
+        if (chatSecondsLeft === 0) clearInterval(chatTimerInterval);
       }, 1000);
     }
 

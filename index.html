@@ -397,13 +397,29 @@
       font-size: 0.84rem;
       min-height: 20px;
     }
+
+    .detected-location {
+      margin-top: 10px;
+    }
+
+    .match-shared {
+      margin: 4px 0 0;
+    }
+
+    .hero-wave {
+      background: linear-gradient(150deg, rgba(60,228,161,0.2), rgba(20,17,55,0.9));
+    }
+
+    .tags-top {
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
   <main class="prototype">
     <section class="phone" aria-label="Lingr prototype">
       <div class="status-bar">
-        <span>Lingr</span>
+        <span aria-label="Lingr app">Lingr</span>
         <span id="screen-indicator">1 / 7</span>
       </div>
 
@@ -414,7 +430,7 @@
         </header>
         <div class="hero">
           <p>Live campus activity</p>
-          <div class="count"><span id="live-count">218</span> students <small>active now</small></div>
+          <div class="count" aria-live="polite" aria-atomic="true"><span id="live-count">218</span> students <small>active now</small></div>
         </div>
         <div class="actions">
           <button data-goto="1">Start</button>
@@ -429,7 +445,7 @@
         </header>
         <div>
           <div class="qr" aria-hidden="true"></div>
-          <p class="subtitle" style="margin-top:10px;"><strong>Detected:</strong> Library · Desk 04-B</p>
+          <p class="subtitle detected-location"><strong>Detected:</strong> Library &middot; Desk 04-B</p>
         </div>
         <div class="actions">
           <button class="secondary" data-goto="0">Back</button>
@@ -441,7 +457,7 @@
         <header>
           <h2 class="title">Pick up to 3 interests</h2>
           <p class="subtitle">This is the trace you leave on the desk for future students.</p>
-          <p class="counter"><span id="selected-count">0</span>/3 selected</p>
+          <p class="counter" aria-live="polite" aria-atomic="true"><span id="selected-count">0</span>/3 selected</p>
         </header>
         <div>
           <div class="pill-wrap" id="pill-wrap"></div>
@@ -484,8 +500,8 @@
           </div>
           <div class="match-card">
             <div>
-              <strong>Ari · 22m away</strong>
-              <p class="subtitle" style="margin: 4px 0 0;">Shared: <span id="live-shared">Design, AI</span></p>
+              <strong>Ari &middot; 22m away</strong>
+              <p class="subtitle match-shared">Shared: <span id="live-shared">Design, AI</span></p>
             </div>
             <button data-goto="5">Wave</button>
           </div>
@@ -502,9 +518,9 @@
           <p class="subtitle">Both people must wave for chat to open.</p>
         </header>
         <div>
-          <div class="hero" style="background: linear-gradient(150deg, rgba(60,228,161,0.2), rgba(20,17,55,0.9));">
-            <p><strong>You × Ari</strong> · Shared interests</p>
-            <div class="tags" id="wave-tags" style="margin-top:8px;"></div>
+          <div class="hero hero-wave">
+            <p><strong>You × Ari</strong> &middot; Shared interests</p>
+            <div class="tags tags-top" id="wave-tags"></div>
           </div>
           <p class="status" id="wave-status">Wave to send a low-pressure ping.</p>
         </div>
@@ -523,7 +539,7 @@
         <div>
           <div class="chat-top">
             <span>Chat with Ari</span>
-            <span class="timer" id="chat-timer">15:00</span>
+            <span class="timer" id="chat-timer" aria-live="polite" aria-atomic="true">15:00</span>
           </div>
           <div class="message-list">
             <div class="msg them">Hey! Saw we both picked design + AI 👋</div>
@@ -564,6 +580,17 @@
     const openChatBtn = document.getElementById('open-chat-btn');
     const chatTimer = document.getElementById('chat-timer');
 
+    const MAX_INTEREST_SELECTION = 3;
+    const LIVE_COUNT_MIN = 200;
+    const LIVE_COUNT_MAX = 240;
+    const LIVE_COUNT_UPDATE_INTERVAL_MS = 1800;
+    const WAVE_RESPONSE_DELAY_MS = 1200;
+    const CHAT_DURATION_MINUTES = 15;
+    const LIVE_COUNT_INCREMENT_PROBABILITY = 0.5;
+    const SECONDS_PER_MINUTE = 60;
+    const DEFAULT_SELECTED_INTERESTS = ['Design', 'AI'];
+    const DEFAULT_SHARED_INTERESTS = ['Design', 'AI'];
+
     const interests = ['AI', 'Design', 'Gaming', 'Music', 'Startups', 'Fitness', 'Film', 'Books', 'Cooking'];
     const ghosts = [
       { name: 'Mia', when: '12m ago', tags: ['Design', 'AI', 'Film'] },
@@ -572,10 +599,27 @@
     ];
 
     let current = 0;
-    let selected = new Set(['Design', 'AI']);
+    let selected = new Set(DEFAULT_SELECTED_INTERESTS);
     let countValue = 218;
     let waveComplete = false;
-    let timerSeconds = 15 * 60;
+    let timerSeconds = CHAT_DURATION_MINUTES * SECONDS_PER_MINUTE;
+    let liveCountIntervalId = null;
+    let timerIntervalId = null;
+
+    function startLiveCountTicker() {
+      if (liveCountIntervalId !== null) return;
+      liveCountIntervalId = setInterval(() => {
+        countValue += Math.random() < LIVE_COUNT_INCREMENT_PROBABILITY ? 1 : -1;
+        countValue = Math.max(LIVE_COUNT_MIN, Math.min(LIVE_COUNT_MAX, countValue));
+        liveCountEl.textContent = countValue;
+      }, LIVE_COUNT_UPDATE_INTERVAL_MS);
+    }
+
+    function stopLiveCountTicker() {
+      if (liveCountIntervalId === null) return;
+      clearInterval(liveCountIntervalId);
+      liveCountIntervalId = null;
+    }
 
     function showScreen(index) {
       current = Math.max(0, Math.min(index, screens.length - 1));
@@ -585,24 +629,29 @@
       indicator.textContent = `${current + 1} / ${screens.length}`;
       prevBtn.disabled = current === 0;
       nextBtn.disabled = current === screens.length - 1;
+      if (current === 0) startLiveCountTicker();
+      else stopLiveCountTicker();
+      if (current === 6) startTimer();
     }
 
     function renderPills() {
       pillWrap.innerHTML = '';
       interests.forEach((interest) => {
         const pill = document.createElement('button');
-        pill.className = `pill${selected.has(interest) ? ' selected' : ''}`;
+        pill.classList.add('pill');
+        if (selected.has(interest)) pill.classList.add('selected');
         pill.type = 'button';
         pill.textContent = interest;
+        pill.setAttribute('aria-pressed', String(selected.has(interest)));
         pill.addEventListener('click', () => {
           if (selected.has(interest)) {
             selected.delete(interest);
             selectionHintEl.textContent = '';
-          } else if (selected.size < 3) {
+          } else if (selected.size < MAX_INTEREST_SELECTION) {
             selected.add(interest);
             selectionHintEl.textContent = '';
           } else {
-            selectionHintEl.textContent = 'You can pick up to 3 interests.';
+            selectionHintEl.textContent = `You can pick up to ${MAX_INTEREST_SELECTION} interests.`;
           }
           updateSelection();
         });
@@ -610,23 +659,40 @@
       });
     }
 
-    function ghostTag(tag) {
-      const matched = selected.has(tag);
-      return `<span class="tag${matched ? ' match' : ''}">${tag}</span>`;
+    function createGhostTagElement(tag) {
+      const element = document.createElement('span');
+      element.classList.add('tag');
+      if (selected.has(tag)) element.classList.add('match');
+      element.textContent = tag;
+      return element;
     }
 
     function updateGhosts() {
       let matchedGhosts = 0;
-      ghostList.innerHTML = ghosts.map((ghost) => {
+      ghostList.innerHTML = '';
+      ghosts.forEach((ghost) => {
         const hasMatch = ghost.tags.some((tag) => selected.has(tag));
         if (hasMatch) matchedGhosts += 1;
-        return `
-          <article class="ghost-card">
-            <div class="ghost-meta"><strong>${ghost.name}</strong><span>${ghost.when}</span></div>
-            <div class="tags">${ghost.tags.map(ghostTag).join('')}</div>
-          </article>
-        `;
-      }).join('');
+
+        const card = document.createElement('article');
+        card.classList.add('ghost-card');
+
+        const meta = document.createElement('div');
+        meta.classList.add('ghost-meta');
+
+        const name = document.createElement('strong');
+        name.textContent = ghost.name;
+        const when = document.createElement('span');
+        when.textContent = ghost.when;
+        meta.append(name, when);
+
+        const tags = document.createElement('div');
+        tags.classList.add('tags');
+        ghost.tags.forEach((tag) => tags.appendChild(createGhostTagElement(tag)));
+
+        card.append(meta, tags);
+        ghostList.appendChild(card);
+      });
       ghostCallout.textContent = `${matchedGhosts} ghost${matchedGhosts === 1 ? '' : 's'} share your interests.`;
     }
 
@@ -636,9 +702,10 @@
       renderPills();
       updateGhosts();
 
-      const shared = [...selected].slice(0, 2);
-      liveShared.textContent = shared.length ? shared.join(', ') : 'Design, AI';
-      waveTags.innerHTML = (shared.length ? shared : ['Design', 'AI'])
+      const sharedInterests = [...selected].slice(0, 2);
+      const displaySharedInterests = sharedInterests.length ? sharedInterests : DEFAULT_SHARED_INTERESTS;
+      liveShared.textContent = displaySharedInterests.join(', ');
+      waveTags.innerHTML = displaySharedInterests
         .map((tag) => `<span class="tag match">${tag}</span>`)
         .join('');
     }
@@ -651,16 +718,25 @@
         waveComplete = true;
         waveStatus.textContent = 'Ari waved back! You can open chat now.';
         openChatBtn.disabled = false;
-      }, 1200);
+      }, WAVE_RESPONSE_DELAY_MS);
+    }
+
+    function formatTimer(seconds) {
+      const m = String(Math.floor(seconds / SECONDS_PER_MINUTE)).padStart(2, '0');
+      const s = String(seconds % SECONDS_PER_MINUTE).padStart(2, '0');
+      return `${m}:${s}`;
     }
 
     function startTimer() {
-      setInterval(() => {
+      if (timerIntervalId !== null) return;
+      timerIntervalId = setInterval(() => {
         if (timerSeconds <= 0) return;
         timerSeconds -= 1;
-        const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
-        const s = String(timerSeconds % 60).padStart(2, '0');
-        chatTimer.textContent = `${m}:${s}`;
+        chatTimer.textContent = formatTimer(timerSeconds);
+        if (timerSeconds === 0) {
+          clearInterval(timerIntervalId);
+          timerIntervalId = null;
+        }
       }, 1000);
     }
 
@@ -673,16 +749,16 @@
     prevBtn.addEventListener('click', () => showScreen(current - 1));
     nextBtn.addEventListener('click', () => showScreen(current + 1));
     waveBtn.addEventListener('click', startWave);
-
-    setInterval(() => {
-      countValue += Math.random() > 0.5 ? 1 : -1;
-      countValue = Math.max(200, Math.min(240, countValue));
-      liveCountEl.textContent = countValue;
-    }, 1800);
+    window.addEventListener('beforeunload', () => {
+      stopLiveCountTicker();
+      if (timerIntervalId !== null) {
+        clearInterval(timerIntervalId);
+        timerIntervalId = null;
+      }
+    });
 
     updateSelection();
     showScreen(0);
-    startTimer();
   </script>
 </body>
 </html>

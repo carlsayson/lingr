@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lingr Prototype Flow</title>
+  <style>
+    :root {
+      --bg: #0a0820;
+      --panel: #141137;
+      --panel-2: #1e1a4d;
+      --text: #f7f7ff;
+      --muted: #b9b5df;
+      --purple: #8f63ff;
+      --purple-soft: #b69cff;
+      --green: #3ce4a1;
+      --neutral-dot: #8f8aad;
+      --danger: #ff6f91;
+      --radius: 22px;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(80vw 80vw at 10% -20%, rgba(143, 99, 255, 0.35), transparent),
+        radial-gradient(70vw 70vw at 100% 120%, rgba(60, 228, 161, 0.2), transparent),
+        var(--bg);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .prototype {
+      width: min(980px, 100%);
+      display: grid;
+      gap: 18px;
+      justify-items: center;
+    }
+
+    .phone {
+      width: min(420px, 100%);
+      aspect-ratio: 9 / 17;
+      border-radius: 34px;
+      background: linear-gradient(180deg, #0e0b2a 0%, #070616 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-bar {
+      height: 34px;
+      padding: 12px 16px 0;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 34px 0 0;
+      padding: 18px 16px 18px;
+      opacity: 0;
+      transform: translateX(18px) scale(0.99);
+      transition: opacity 300ms ease, transform 300ms ease;
+      pointer-events: none;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+    }
+
+    .screen.active {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      pointer-events: auto;
+    }
+
+    h1, h2, p {
+      margin: 0;
+    }
+
+    .title {
+      font-size: 1.28rem;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.93rem;
+      line-height: 1.45;
+      margin-top: 6px;
+    }
+
+    .hero {
+      background: linear-gradient(150deg, rgba(143, 99, 255, 0.35), rgba(30, 26, 77, 0.8));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .count {
+      margin-top: 10px;
+      display: inline-flex;
+      gap: 6px;
+      align-items: baseline;
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .count small {
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 0.8rem;
+    }
+
+    .qr {
+      height: 235px;
+      border-radius: 22px;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(130deg, #191648, #0f0d2d);
+      background-size: 24px 24px, 24px 24px, 100% 100%;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .qr::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent, rgba(60, 228, 161, 0.35), transparent);
+      animation: scan 2s linear infinite;
+    }
+
+    @keyframes scan {
+      from { transform: translateY(-100%); }
+      to { transform: translateY(100%); }
+    }
+
+    .pill-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .pill {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.02);
+      cursor: pointer;
+      transition: all 140ms ease;
+      font-size: 0.85rem;
+      user-select: none;
+    }
+
+    .pill:hover {
+      border-color: rgba(182, 156, 255, 0.8);
+      color: #dfd5ff;
+    }
+
+    .pill.selected {
+      color: white;
+      background: rgba(143, 99, 255, 0.3);
+      border-color: rgba(182, 156, 255, 1);
+      box-shadow: 0 0 0 2px rgba(143, 99, 255, 0.2) inset;
+    }
+
+    .counter {
+      color: var(--purple-soft);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .hint {
+      min-height: 20px;
+      color: var(--danger);
+      font-size: 0.78rem;
+    }
+
+    .ghost-list {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .ghost-card {
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 11px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .ghost-meta {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      font-size: 0.72rem;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #d8d4f3;
+      border: 1px solid transparent;
+    }
+
+    .tag.match {
+      background: rgba(143, 99, 255, 0.25);
+      border-color: rgba(182, 156, 255, 0.9);
+      color: #f3ebff;
+    }
+
+    .callout {
+      border-radius: 14px;
+      background: rgba(60, 228, 161, 0.16);
+      border: 1px solid rgba(60, 228, 161, 0.5);
+      color: #c0ffe8;
+      padding: 10px;
+      font-size: 0.84rem;
+      font-weight: 600;
+    }
+
+    .map {
+      position: relative;
+      height: 240px;
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.08), transparent 26%),
+        radial-gradient(circle at 72% 68%, rgba(255, 255, 255, 0.05), transparent 30%),
+        linear-gradient(145deg, #16123f 0%, #0d0b28 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .pin {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      position: absolute;
+      transform: translate(-50%, -50%);
+      background: var(--neutral-dot);
+    }
+
+    .pin.you { background: var(--purple); width: 14px; height: 14px; }
+    .pin.match { background: var(--green); width: 14px; height: 14px; box-shadow: 0 0 0 0 rgba(60, 228, 161, 0.5); animation: pulse 1.8s infinite; }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(60, 228, 161, 0.5); }
+      70% { box-shadow: 0 0 0 16px rgba(60, 228, 161, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(60, 228, 161, 0); }
+    }
+
+    .match-card {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(60, 228, 161, 0.18), rgba(12, 70, 52, 0.12));
+      border: 1px solid rgba(60, 228, 161, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .message-list {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      margin-top: 6px;
+    }
+
+    .msg {
+      max-width: 80%;
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: 0.86rem;
+      line-height: 1.4;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .msg.them {
+      justify-self: start;
+      background: rgba(255, 255, 255, 0.06);
+      color: #f2f0ff;
+    }
+
+    .msg.you {
+      justify-self: end;
+      background: rgba(143, 99, 255, 0.32);
+      color: white;
+      border-color: rgba(182, 156, 255, 0.8);
+    }
+
+    .chat-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .timer {
+      color: #fff;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .actions,
+    .global-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .global-controls {
+      width: min(420px, 100%);
+      padding: 0 4px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-weight: 600;
+      font-size: 0.86rem;
+      cursor: pointer;
+      color: white;
+      background: linear-gradient(145deg, #7f56ff, #6a3df2);
+      transition: transform 140ms ease, opacity 140ms ease;
+    }
+
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+
+    button.secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e2ddff;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    button.ghost {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--text);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(60, 228, 161, 0.18);
+      border: 1px solid rgba(60, 228, 161, 0.45);
+      color: #c5ffe9;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 0.84rem;
+      min-height: 20px;
+    }
+
+    .detected-location {
+      margin-top: 10px;
+    }
+
+    .match-shared {
+      margin: 4px 0 0;
+    }
+
+    .hero-wave {
+      background: linear-gradient(150deg, rgba(60,228,161,0.2), rgba(20,17,55,0.9));
+    }
+
+    .tags-top {
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <main class="prototype">
+    <section class="phone" aria-label="Lingr prototype">
+      <div class="status-bar">
+        <span aria-label="Lingr app">Lingr</span>
+        <span id="screen-indicator">1 / 7</span>
+      </div>
+
+      <article class="screen active" data-screen="0">
+        <header>
+          <h1 class="title">Find meaningful conversations near you.</h1>
+          <p class="subtitle">Leave a digital trace at your desk and connect through shared interests.</p>
+        </header>
+        <div class="hero">
+          <p>Live campus activity</p>
+          <div class="count" aria-live="polite" aria-atomic="true"><span id="live-count">218</span> students <small>active now</small></div>
+        </div>
+        <div class="actions">
+          <button data-goto="1">Start</button>
+          <span class="badge">Splash</span>
+        </div>
+      </article>
+
+      <article class="screen" data-screen="1">
+        <header>
+          <h2 class="title">Scan Desk QR</h2>
+          <p class="subtitle">Point your camera at the sticker to claim this spot.</p>
+        </header>
+        <div>
+          <div class="qr" aria-hidden="true"></div>
+          <p class="subtitle detected-location"><strong>Detected:</strong> Library &middot; Desk 04-B</p>
+        </div>
+        <div class="actions">
+          <button class="secondary" data-goto="0">Back</button>
+          <button data-goto="2">Confirm Desk</button>
+        </div>
+      </article>
+
+      <article class="screen" data-screen="2">
+        <header>
+          <h2 class="title">Pick up to 3 interests</h2>
+          <p class="subtitle">This is the trace you leave on the desk for future students.</p>
+          <p class="counter" aria-live="polite" aria-atomic="true"><span id="selected-count">0</span>/3 selected</p>
+        </header>
+        <div>
+          <div class="pill-wrap" id="pill-wrap"></div>
+          <p class="hint" id="selection-hint"></p>
+        </div>
+        <div class="actions">
+          <button class="secondary" data-goto="1">Back</button>
+          <button id="interests-next" data-goto="3" disabled>Continue</button>
+        </div>
+      </article>
+
+      <article class="screen" data-screen="3">
+        <header>
+          <h2 class="title">Desk Ghost Map</h2>
+          <p class="subtitle">See who sat here before and what they were into.</p>
+        </header>
+        <div>
+          <div class="ghost-list" id="ghost-list"></div>
+          <div class="callout" id="ghost-callout">2 ghosts share your interests.</div>
+        </div>
+        <div class="actions">
+          <button class="secondary" data-goto="2">Back</button>
+          <button data-goto="4">View Live Map</button>
+        </div>
+      </article>
+
+      <article class="screen" data-screen="4">
+        <header>
+          <h2 class="title">Live Interest Map</h2>
+          <p class="subtitle">Your dot is purple. Match is green and pulsing.</p>
+        </header>
+        <div>
+          <div class="map" aria-label="active student map">
+            <span class="pin" style="left: 22%; top: 30%;"></span>
+            <span class="pin" style="left: 42%; top: 68%;"></span>
+            <span class="pin" style="left: 60%; top: 18%;"></span>
+            <span class="pin" style="left: 75%; top: 42%;"></span>
+            <span class="pin you" style="left: 35%; top: 40%;" title="You"></span>
+            <span class="pin match" style="left: 62%; top: 55%;" title="Match"></span>
+          </div>
+          <div class="match-card">
+            <div>
+              <strong>Ari &middot; 22m away</strong>
+              <p class="subtitle match-shared">Shared: <span id="live-shared">Design, AI</span></p>
+            </div>
+            <button data-goto="5">Wave</button>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="secondary" data-goto="3">Back</button>
+          <button data-goto="5">Next</button>
+        </div>
+      </article>
+
+      <article class="screen" data-screen="5">
+        <header>
+          <h2 class="title">Digital Wave</h2>
+          <p class="subtitle">Both people must wave for chat to open.</p>
+        </header>
+        <div>
+          <div class="hero hero-wave">
+            <p><strong>You × Ari</strong> &middot; Shared interests</p>
+            <div class="tags tags-top" id="wave-tags"></div>
+          </div>
+          <p class="status" id="wave-status">Wave to send a low-pressure ping.</p>
+        </div>
+        <div class="actions">
+          <button class="secondary" data-goto="4">Back</button>
+          <button id="wave-btn">Wave Now</button>
+          <button id="open-chat-btn" data-goto="6" disabled>Open Chat</button>
+        </div>
+      </article>
+
+      <article class="screen" data-screen="6">
+        <header>
+          <h2 class="title">15-minute Temp Chat</h2>
+          <p class="subtitle">Low-stakes by design. Auto-closes when timer ends.</p>
+        </header>
+        <div>
+          <div class="chat-top">
+            <span>Chat with Ari</span>
+            <span class="timer" id="chat-timer" aria-live="polite" aria-atomic="true">15:00</span>
+          </div>
+          <div class="message-list">
+            <div class="msg them">Hey! Saw we both picked design + AI 👋</div>
+            <div class="msg you">Yes! I'm working on a campus startup project this week.</div>
+            <div class="msg them">Nice — want to compare ideas before class?</div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="secondary" data-goto="5">Back</button>
+          <button data-goto="0">Restart Flow</button>
+        </div>
+      </article>
+    </section>
+
+    <nav class="global-controls" aria-label="Screen controls">
+      <button id="prev-btn" class="ghost">Prev</button>
+      <button id="next-btn" class="ghost">Next</button>
+    </nav>
+  </main>
+
+  <script>
+    const screens = [...document.querySelectorAll('.screen')];
+    const indicator = document.getElementById('screen-indicator');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    const liveCountEl = document.getElementById('live-count');
+    const selectedCountEl = document.getElementById('selected-count');
+    const selectionHintEl = document.getElementById('selection-hint');
+    const interestsNext = document.getElementById('interests-next');
+    const pillWrap = document.getElementById('pill-wrap');
+    const ghostList = document.getElementById('ghost-list');
+    const ghostCallout = document.getElementById('ghost-callout');
+    const liveShared = document.getElementById('live-shared');
+    const waveTags = document.getElementById('wave-tags');
+    const waveBtn = document.getElementById('wave-btn');
+    const waveStatus = document.getElementById('wave-status');
+    const openChatBtn = document.getElementById('open-chat-btn');
+    const chatTimer = document.getElementById('chat-timer');
+
+    const MAX_INTEREST_SELECTION = 3;
+    const LIVE_COUNT_MIN = 200;
+    const LIVE_COUNT_MAX = 240;
+    const LIVE_COUNT_UPDATE_INTERVAL_MS = 1800;
+    const WAVE_RESPONSE_DELAY_MS = 1200;
+    const CHAT_DURATION_MINUTES = 15;
+    const LIVE_COUNT_INCREMENT_PROBABILITY = 0.5;
+    const SECONDS_PER_MINUTE = 60;
+    const DEFAULT_SELECTED_INTERESTS = ['Design', 'AI'];
+    const DEFAULT_SHARED_INTERESTS = ['Design', 'AI'];
+
+    const interests = ['AI', 'Design', 'Gaming', 'Music', 'Startups', 'Fitness', 'Film', 'Books', 'Cooking'];
+    const ghosts = [
+      { name: 'Mia', when: '12m ago', tags: ['Design', 'AI', 'Film'] },
+      { name: 'Noah', when: '1h ago', tags: ['Gaming', 'Music', 'AI'] },
+      { name: 'Lena', when: '2h ago', tags: ['Books', 'Cooking', 'Design'] }
+    ];
+
+    let current = 0;
+    let selected = new Set(DEFAULT_SELECTED_INTERESTS);
+    let countValue = 218;
+    let waveComplete = false;
+    let timerSeconds = CHAT_DURATION_MINUTES * SECONDS_PER_MINUTE;
+    let liveCountIntervalId = null;
+    let timerIntervalId = null;
+
+    function startLiveCountTicker() {
+      if (liveCountIntervalId !== null) return;
+      liveCountIntervalId = setInterval(() => {
+        countValue += Math.random() < LIVE_COUNT_INCREMENT_PROBABILITY ? 1 : -1;
+        countValue = Math.max(LIVE_COUNT_MIN, Math.min(LIVE_COUNT_MAX, countValue));
+        liveCountEl.textContent = countValue;
+      }, LIVE_COUNT_UPDATE_INTERVAL_MS);
+    }
+
+    function stopLiveCountTicker() {
+      if (liveCountIntervalId === null) return;
+      clearInterval(liveCountIntervalId);
+      liveCountIntervalId = null;
+    }
+
+    function showScreen(index) {
+      current = Math.max(0, Math.min(index, screens.length - 1));
+      screens.forEach((screen, i) => {
+        screen.classList.toggle('active', i === current);
+      });
+      indicator.textContent = `${current + 1} / ${screens.length}`;
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === screens.length - 1;
+      if (current === 0) startLiveCountTicker();
+      else stopLiveCountTicker();
+      if (current === 6) startTimer();
+    }
+
+    function renderPills() {
+      pillWrap.innerHTML = '';
+      interests.forEach((interest) => {
+        const pill = document.createElement('button');
+        pill.classList.add('pill');
+        if (selected.has(interest)) pill.classList.add('selected');
+        pill.type = 'button';
+        pill.textContent = interest;
+        pill.setAttribute('aria-pressed', String(selected.has(interest)));
+        pill.addEventListener('click', () => {
+          if (selected.has(interest)) {
+            selected.delete(interest);
+            selectionHintEl.textContent = '';
+          } else if (selected.size < MAX_INTEREST_SELECTION) {
+            selected.add(interest);
+            selectionHintEl.textContent = '';
+          } else {
+            selectionHintEl.textContent = `You can pick up to ${MAX_INTEREST_SELECTION} interests.`;
+          }
+          updateSelection();
+        });
+        pillWrap.appendChild(pill);
+      });
+    }
+
+    function createGhostTagElement(tag) {
+      const element = document.createElement('span');
+      element.classList.add('tag');
+      if (selected.has(tag)) element.classList.add('match');
+      element.textContent = tag;
+      return element;
+    }
+
+    function updateGhosts() {
+      let matchedGhosts = 0;
+      ghostList.innerHTML = '';
+      ghosts.forEach((ghost) => {
+        const hasMatch = ghost.tags.some((tag) => selected.has(tag));
+        if (hasMatch) matchedGhosts += 1;
+
+        const card = document.createElement('article');
+        card.classList.add('ghost-card');
+
+        const meta = document.createElement('div');
+        meta.classList.add('ghost-meta');
+
+        const name = document.createElement('strong');
+        name.textContent = ghost.name;
+        const when = document.createElement('span');
+        when.textContent = ghost.when;
+        meta.append(name, when);
+
+        const tags = document.createElement('div');
+        tags.classList.add('tags');
+        ghost.tags.forEach((tag) => tags.appendChild(createGhostTagElement(tag)));
+
+        card.append(meta, tags);
+        ghostList.appendChild(card);
+      });
+      ghostCallout.textContent = `${matchedGhosts} ghost${matchedGhosts === 1 ? '' : 's'} share your interests.`;
+    }
+
+    function updateSelection() {
+      selectedCountEl.textContent = selected.size;
+      interestsNext.disabled = selected.size === 0;
+      renderPills();
+      updateGhosts();
+
+      const sharedInterests = [...selected].slice(0, 2);
+      const displaySharedInterests = sharedInterests.length ? sharedInterests : DEFAULT_SHARED_INTERESTS;
+      liveShared.textContent = displaySharedInterests.join(', ');
+      waveTags.innerHTML = displaySharedInterests
+        .map((tag) => `<span class="tag match">${tag}</span>`)
+        .join('');
+    }
+
+    function startWave() {
+      if (waveComplete) return;
+      waveBtn.disabled = true;
+      waveStatus.textContent = 'Wave sent… waiting for Ari.';
+      setTimeout(() => {
+        waveComplete = true;
+        waveStatus.textContent = 'Ari waved back! You can open chat now.';
+        openChatBtn.disabled = false;
+      }, WAVE_RESPONSE_DELAY_MS);
+    }
+
+    function formatTimer(seconds) {
+      const m = String(Math.floor(seconds / SECONDS_PER_MINUTE)).padStart(2, '0');
+      const s = String(seconds % SECONDS_PER_MINUTE).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function startTimer() {
+      if (timerIntervalId !== null) return;
+      timerIntervalId = setInterval(() => {
+        if (timerSeconds <= 0) return;
+        timerSeconds -= 1;
+        chatTimer.textContent = formatTimer(timerSeconds);
+        if (timerSeconds === 0) {
+          clearInterval(timerIntervalId);
+          timerIntervalId = null;
+        }
+      }, 1000);
+    }
+
+    document.querySelectorAll('[data-goto]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        showScreen(Number(btn.dataset.goto));
+      });
+    });
+
+    prevBtn.addEventListener('click', () => showScreen(current - 1));
+    nextBtn.addEventListener('click', () => showScreen(current + 1));
+    waveBtn.addEventListener('click', startWave);
+    window.addEventListener('beforeunload', () => {
+      stopLiveCountTicker();
+      if (timerIntervalId !== null) {
+        clearInterval(timerIntervalId);
+        timerIntervalId = null;
+      }
+    });
+
+    updateSelection();
+    showScreen(0);
+  </script>
+</body>
+</html>

@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lingr Product Prototype</title>
+  <style>
+    :root {
+      --bg: #0e1021;
+      --panel: #171a30;
+      --panel-soft: #1e2240;
+      --text: #ecedff;
+      --muted: #abb0d6;
+      --purple: #8a5bff;
+      --green: #37d67a;
+      --line: #2d3156;
+      --danger: #ff6c8b;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at top, #1f2454 0%, var(--bg) 45%);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: min(430px, 100%);
+      height: min(860px, 95vh);
+      border-radius: 30px;
+      border: 1px solid #2f3355;
+      background: linear-gradient(180deg, #141734 0%, #0f1228 100%);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .status {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+      position: absolute;
+      top: 14px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      z-index: 2;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 40px 0 82px;
+      padding: 26px 22px 18px;
+      opacity: 0;
+      transform: translateX(24px);
+      transition: opacity 280ms ease, transform 320ms ease;
+      pointer-events: none;
+      overflow: auto;
+    }
+
+    .screen.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    h1 { margin: 0 0 10px; font-size: 28px; line-height: 1.1; }
+    h2 { margin: 0 0 10px; font-size: 22px; }
+    p { margin: 0; color: var(--muted); line-height: 1.5; }
+
+    .hero {
+      margin-top: 22px;
+      background: linear-gradient(135deg, #231f53 0%, #2d3670 100%);
+      border: 1px solid #3b447f;
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .count {
+      margin-top: 20px;
+      font-size: 15px;
+      color: #dce0ff;
+      background: #1a1d39;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      width: fit-content;
+      padding: 8px 12px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+
+    .btn,
+    .ghost-tag,
+    .pill {
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: #1b1f3c;
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 180ms ease;
+    }
+
+    .btn:hover,
+    .pill:hover { border-color: #5960a0; }
+    .btn.primary {
+      background: var(--purple);
+      border-color: transparent;
+    }
+    .btn.success {
+      background: var(--green);
+      border-color: transparent;
+      color: #082014;
+    }
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .split {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .scanner {
+      margin-top: 20px;
+      height: 280px;
+      border-radius: 20px;
+      border: 1px solid #404979;
+      background: repeating-linear-gradient(0deg, #1b2044 0px, #1b2044 14px, #1a1e3d 14px, #1a1e3d 28px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .scanner:before,
+    .scanner:after {
+      content: "";
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      border: 3px solid #a9b1f7;
+    }
+
+    .scanner:before {
+      top: 20px;
+      left: 20px;
+      border-right: none;
+      border-bottom: none;
+      border-radius: 12px 0 0 0;
+    }
+
+    .scanner:after {
+      bottom: 20px;
+      right: 20px;
+      border-left: none;
+      border-top: none;
+      border-radius: 0 0 12px 0;
+    }
+
+    .scan-line {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      height: 3px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, rgba(55, 214, 122, 0), #37d67a, rgba(55, 214, 122, 0));
+      animation: scan 2.2s infinite ease-in-out;
+    }
+
+    @keyframes scan {
+      0%, 100% { top: 34px; opacity: 0.7; }
+      50% { top: 240px; opacity: 1; }
+    }
+
+    .desk-label {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 22px;
+      background: rgba(14, 16, 33, 0.9);
+      border: 1px solid #485298;
+      border-radius: 10px;
+      font-size: 14px;
+      padding: 8px 11px;
+    }
+
+    .pill-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .pill {
+      width: 100%;
+      text-align: center;
+    }
+
+    .pill.selected {
+      background: rgba(138, 91, 255, 0.2);
+      border-color: #9d78ff;
+      color: #f2ecff;
+    }
+
+    .pill.blocked {
+      animation: blink 240ms;
+      border-color: var(--danger);
+    }
+
+    @keyframes blink {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.97); }
+      100% { transform: scale(1); }
+    }
+
+    .counter { margin-top: 14px; color: #cfd4ff; font-size: 14px; }
+
+    .ghost {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 8px;
+    }
+
+    .ghost small { color: var(--muted); }
+
+    .ghost-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .ghost-tag {
+      padding: 6px 10px;
+      font-size: 12px;
+      background: #1a1f3f;
+      cursor: default;
+    }
+
+    .ghost-tag.match {
+      background: rgba(138, 91, 255, 0.2);
+      border-color: #9d78ff;
+    }
+
+    .callout {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #2f6f50;
+      color: #bdf3d5;
+      background: rgba(55, 214, 122, 0.12);
+      font-weight: 600;
+    }
+
+    .map {
+      margin-top: 16px;
+      height: 300px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: radial-gradient(circle at 12% 20%, rgba(255,255,255,0.09) 0 2px, transparent 3px),
+                  radial-gradient(circle at 65% 70%, rgba(255,255,255,0.08) 0 2px, transparent 3px),
+                  radial-gradient(circle at 80% 30%, rgba(255,255,255,0.08) 0 2px, transparent 3px),
+                  linear-gradient(160deg, #171b34 0%, #13162b 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pin {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #9ea5c9;
+      border: 2px solid rgba(0,0,0,0.2);
+    }
+
+    .pin.you { background: var(--purple); width: 16px; height: 16px; z-index: 2; }
+    .pin.match {
+      background: var(--green);
+      width: 17px;
+      height: 17px;
+      z-index: 2;
+      box-shadow: 0 0 0 0 rgba(55, 214, 122, 0.7);
+      animation: pulse 1.6s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(55, 214, 122, 0.65); }
+      70% { box-shadow: 0 0 0 14px rgba(55, 214, 122, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(55, 214, 122, 0); }
+    }
+
+    .match-card {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .match-card strong { display: block; margin-bottom: 3px; }
+
+    .wave-state {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #d4d8ff;
+      min-height: 20px;
+    }
+
+    .chat-window {
+      margin-top: 14px;
+      background: #161a35;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .bubble {
+      width: fit-content;
+      max-width: 90%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      line-height: 1.4;
+      font-size: 14px;
+    }
+
+    .bubble.in {
+      background: #22274a;
+      border: 1px solid #323969;
+    }
+
+    .bubble.out {
+      margin-left: auto;
+      background: rgba(138, 91, 255, 0.2);
+      border: 1px solid #8a5bff;
+    }
+
+    .timer {
+      margin-top: 10px;
+      font-weight: 700;
+      color: #ffe9a9;
+      background: rgba(255, 214, 102, 0.12);
+      border: 1px solid rgba(255, 214, 102, 0.35);
+      border-radius: 12px;
+      padding: 10px 12px;
+      width: fit-content;
+    }
+
+    .footer {
+      position: absolute;
+      inset: auto 0 0;
+      border-top: 1px solid #2b2f53;
+      background: rgba(12, 14, 28, 0.96);
+      padding: 10px 16px 14px;
+    }
+
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #41466d;
+      transition: all 180ms ease;
+    }
+
+    .dot.active {
+      width: 16px;
+      background: #8a5bff;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .nav button {
+      flex: 1;
+      min-height: 42px;
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="Lingr app prototype">
+    <div class="status">
+      <span>Lingr Prototype</span>
+      <span id="screenLabel">1 / 7</span>
+    </div>
+
+    <section class="screen active" data-screen="0">
+      <h1>Meet people in your campus flow.</h1>
+      <p>Lingr transforms your desk into a safe, low-pressure social starting point.</p>
+      <div class="hero">
+        <h2>Today in your campus zone</h2>
+        <div class="count"><span id="liveCount">1,286</span> students live on Lingr</div>
+      </div>
+      <div class="split">
+        <button class="btn primary" data-go="1">Start Journey</button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="1">
+      <h2>Scan Desk QR</h2>
+      <p>Quickly confirm your physical spot to anchor your digital trace.</p>
+      <div class="scanner" aria-label="animated qr scanner">
+        <div class="scan-line"></div>
+        <div class="desk-label">Library · Desk 04-B</div>
+      </div>
+      <div class="split">
+        <button class="btn primary" data-go="2">Confirm Desk 04-B</button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="2">
+      <h2>Pick your interests</h2>
+      <p>Select up to 3 tags that best match your current vibe.</p>
+      <div class="counter" id="interestCounter">0 / 3 selected</div>
+      <div class="pill-grid" id="interestGrid"></div>
+      <div class="split">
+        <button class="btn primary" id="saveInterests" data-go="3" disabled>Save Trace</button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="3">
+      <h2>Desk Ghosts</h2>
+      <p>People who recently sat here. Matching interests glow purple.</p>
+      <div id="ghostList"></div>
+      <div class="callout" id="ghostCallout">0 ghosts share your interests.</div>
+      <div class="split">
+        <button class="btn primary" data-go="4">Open Live Map</button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="4">
+      <h2>Live Interest Map</h2>
+      <p>Your dot is purple. A compatible student nearby pulses in green.</p>
+      <div class="map" aria-label="live student map">
+        <div class="pin" style="top: 26%; left: 22%"></div>
+        <div class="pin" style="top: 54%; left: 14%"></div>
+        <div class="pin" style="top: 68%; left: 58%"></div>
+        <div class="pin" style="top: 32%; left: 78%"></div>
+        <div class="pin you" style="top: 58%; left: 38%" title="You"></div>
+        <div class="pin match" style="top: 44%; left: 54%" title="Top match"></div>
+      </div>
+      <div class="card match-card">
+        <div>
+          <strong id="matchName">Maya · 1 min away</strong>
+          <p id="matchInterests">Shared: Design, Startups</p>
+        </div>
+        <button class="btn success" data-go="5">Wave</button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="5">
+      <h2>Digital Wave</h2>
+      <p>Both people must wave before chat opens. Mutual, safe, and intentional.</p>
+      <div class="card">
+        <strong>Shared Interests</strong>
+        <p id="waveInterests">Design · Startups</p>
+        <div class="split">
+          <button class="btn success" id="sendWaveBtn">Send Wave 👋</button>
+        </div>
+        <div class="wave-state" id="waveState">Waiting for your wave.</div>
+      </div>
+      <div class="split">
+        <button class="btn primary" id="toChatBtn" data-go="6" disabled>Open 15-min Chat</button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="6">
+      <h2>Temp Chat</h2>
+      <p>Low-stakes chat that closes automatically after 15 minutes.</p>
+      <div class="timer">Auto-close in <span id="chatTimer">15:00</span></div>
+      <div class="chat-window" id="chatWindow"></div>
+      <div class="split">
+        <button class="btn" data-go="0">Restart Flow</button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="steps" id="stepDots"></div>
+      <div class="nav">
+        <button class="btn" id="prevBtn">Prev</button>
+        <button class="btn primary" id="nextBtn">Next</button>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    const interestOptions = [
+      "Design", "AI", "Startups", "Music", "Fitness", "Photography",
+      "Gaming", "Sustainability", "Film", "Books"
+    ];
+
+    const ghostPeople = [
+      { name: "Jules", time: "12 min ago", tags: ["Design", "Music"] },
+      { name: "Ari", time: "26 min ago", tags: ["Fitness", "AI"] },
+      { name: "Maya", time: "38 min ago", tags: ["Startups", "Books"] }
+    ];
+
+    const screens = [...document.querySelectorAll('.screen')];
+    const stepDots = document.getElementById('stepDots');
+    const screenLabel = document.getElementById('screenLabel');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    const interestGrid = document.getElementById('interestGrid');
+    const interestCounter = document.getElementById('interestCounter');
+    const saveInterests = document.getElementById('saveInterests');
+
+    const ghostList = document.getElementById('ghostList');
+    const ghostCallout = document.getElementById('ghostCallout');
+
+    const sendWaveBtn = document.getElementById('sendWaveBtn');
+    const waveState = document.getElementById('waveState');
+    const toChatBtn = document.getElementById('toChatBtn');
+
+    const liveCount = document.getElementById('liveCount');
+    const waveInterests = document.getElementById('waveInterests');
+    const matchInterests = document.getElementById('matchInterests');
+    const chatWindow = document.getElementById('chatWindow');
+
+    let currentScreen = 0;
+    let selectedInterests = [];
+    let liveStudents = 1286;
+    let chatSecondsLeft = 15 * 60;
+    let waveAccepted = false;
+
+    function formatTimer(totalSeconds) {
+      const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+      const s = String(totalSeconds % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function renderStepDots() {
+      stepDots.innerHTML = screens.map((_, i) => `<span class="dot ${i === currentScreen ? 'active' : ''}"></span>`).join('');
+      screenLabel.textContent = `${currentScreen + 1} / ${screens.length}`;
+      prevBtn.disabled = currentScreen === 0;
+      nextBtn.disabled = currentScreen === screens.length - 1 || (currentScreen === 5 && !waveAccepted);
+    }
+
+    function goToScreen(index) {
+      currentScreen = Math.max(0, Math.min(index, screens.length - 1));
+      screens.forEach((screen, i) => {
+        screen.classList.toggle('active', i === currentScreen);
+      });
+      renderStepDots();
+    }
+
+    function renderInterests() {
+      interestGrid.innerHTML = interestOptions.map(interest => {
+        const selected = selectedInterests.includes(interest);
+        return `<button class="pill ${selected ? 'selected' : ''}" data-interest="${interest}">${interest}</button>`;
+      }).join('');
+      interestCounter.textContent = `${selectedInterests.length} / 3 selected`;
+      saveInterests.disabled = selectedInterests.length === 0;
+    }
+
+    function getSharedInterests(tags) {
+      return tags.filter(tag => selectedInterests.includes(tag));
+    }
+
+    function renderGhosts() {
+      let sharedGhosts = 0;
+      ghostList.innerHTML = ghostPeople.map(person => {
+        const shared = getSharedInterests(person.tags);
+        if (shared.length) sharedGhosts += 1;
+        const tags = person.tags.map(tag => {
+          const isMatch = selectedInterests.includes(tag);
+          return `<span class="ghost-tag ${isMatch ? 'match' : ''}">${tag}</span>`;
+        }).join('');
+        return `<article class="card"><div class="ghost"><div><strong>${person.name}</strong><small> · ${person.time}</small></div><small>${shared.length ? `${shared.length} match` : 'no match'}</small></div><div class="ghost-tags">${tags}</div></article>`;
+      }).join('');
+      ghostCallout.textContent = `${sharedGhosts} ghosts share your interests.`;
+
+      const featured = selectedInterests.slice(0, 2);
+      const preview = featured.length ? featured.join(', ') : 'Design, Startups';
+      matchInterests.textContent = `Shared: ${preview}`;
+      waveInterests.textContent = featured.length ? featured.join(' · ') : 'Design · Startups';
+    }
+
+    function resetWaveState() {
+      waveAccepted = false;
+      sendWaveBtn.disabled = false;
+      toChatBtn.disabled = true;
+      waveState.textContent = 'Waiting for your wave.';
+      renderStepDots();
+    }
+
+    function renderChat() {
+      const seed = selectedInterests[0] || 'campus life';
+      chatWindow.innerHTML = [
+        `<div class="bubble in">hey! saw we both picked ${seed.toLowerCase()} 👋</div>`,
+        `<div class="bubble out">yes! i\'m working on a quick project around it.</div>`,
+        `<div class="bubble in">same here. want to swap ideas before class?</div>`
+      ].join('');
+    }
+
+    function startLiveCounter() {
+      setInterval(() => {
+        liveStudents += Math.random() > 0.5 ? 1 : -1;
+        liveStudents = Math.max(1200, Math.min(1400, liveStudents));
+        liveCount.textContent = liveStudents.toLocaleString();
+      }, 2200);
+    }
+
+    function startChatTimer() {
+      setInterval(() => {
+        if (currentScreen !== 6) return;
+        chatSecondsLeft = Math.max(0, chatSecondsLeft - 1);
+        document.getElementById('chatTimer').textContent = formatTimer(chatSecondsLeft);
+      }, 1000);
+    }
+
+    interestGrid.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-interest]');
+      if (!button) return;
+      const interest = button.dataset.interest;
+      const selected = selectedInterests.includes(interest);
+      if (selected) {
+        selectedInterests = selectedInterests.filter(x => x !== interest);
+      } else if (selectedInterests.length < 3) {
+        selectedInterests = [...selectedInterests, interest];
+      } else {
+        button.classList.add('blocked');
+        setTimeout(() => button.classList.remove('blocked'), 260);
+      }
+      renderInterests();
+      renderGhosts();
+      renderChat();
+    });
+
+    sendWaveBtn.addEventListener('click', () => {
+      sendWaveBtn.disabled = true;
+      waveState.textContent = 'Wave sent. Waiting for Maya…';
+      setTimeout(() => {
+        waveAccepted = true;
+        waveState.textContent = 'Maya waved back. Chat unlocked ✅';
+        toChatBtn.disabled = false;
+        renderStepDots();
+      }, 950);
+    });
+
+    document.querySelectorAll('[data-go]').forEach(button => {
+      button.addEventListener('click', () => {
+        const index = Number(button.dataset.go);
+        if (Number.isInteger(index)) goToScreen(index);
+      });
+    });
+
+    prevBtn.addEventListener('click', () => goToScreen(currentScreen - 1));
+    nextBtn.addEventListener('click', () => {
+      if (currentScreen === 5 && !waveAccepted) return;
+      goToScreen(currentScreen + 1);
+    });
+
+    goToScreen(0);
+    renderInterests();
+    renderGhosts();
+    renderChat();
+    resetWaveState();
+    startLiveCounter();
+    startChatTimer();
+  </script>
+</body>
+</html>

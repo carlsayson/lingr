@@ -472,7 +472,7 @@
           <strong id="matchName">Maya · 1 min away</strong>
           <p id="matchInterests">Shared: Design, Startups</p>
         </div>
-        <button class="btn success" data-go="5">Wave</button>
+        <button class="btn success" data-go="5">Connect</button>
       </div>
     </section>
 
@@ -520,6 +520,7 @@
     const minActiveStudents = 1200;
     const maxActiveStudents = 1400;
     const defaultSharedInterests = ["Design", "Startups"];
+    const waveScreenIndex = 5;
 
     const ghostPeople = [
       { name: "Jules", time: "12 min ago", tags: ["Design", "Music"] },
@@ -563,11 +564,15 @@
       return `${m}:${s}`;
     }
 
+    function canNavigateFromWaveScreen() {
+      return currentScreen !== waveScreenIndex || waveAccepted;
+    }
+
     function renderStepDots() {
       stepDots.innerHTML = screens.map((_, i) => `<span class="dot ${i === currentScreen ? 'active' : ''}"></span>`).join('');
       screenLabel.textContent = `${currentScreen + 1} / ${screens.length}`;
       prevBtn.disabled = currentScreen === 0;
-      nextBtn.disabled = currentScreen === screens.length - 1 || (currentScreen === 5 && !waveAccepted);
+      nextBtn.disabled = currentScreen === screens.length - 1 || !canNavigateFromWaveScreen();
     }
 
     function goToScreen(index) {
@@ -685,7 +690,7 @@
 
     prevBtn.addEventListener('click', () => goToScreen(currentScreen - 1));
     nextBtn.addEventListener('click', () => {
-      if (currentScreen === 5 && !waveAccepted) return;
+      if (!canNavigateFromWaveScreen()) return;
       goToScreen(currentScreen + 1);
     });
 

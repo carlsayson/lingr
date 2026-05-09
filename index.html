@@ -516,6 +516,10 @@
       "Design", "AI", "Startups", "Music", "Fitness", "Photography",
       "Gaming", "Sustainability", "Film", "Books"
     ];
+    const initialActiveStudentCount = 1286;
+    const minActiveStudents = 1200;
+    const maxActiveStudents = 1400;
+    const defaultSharedInterests = ["Design", "Startups"];
 
     const ghostPeople = [
       { name: "Jules", time: "12 min ago", tags: ["Design", "Music"] },
@@ -547,7 +551,7 @@
 
     let currentScreen = 0;
     let selectedInterests = [];
-    let activeStudentCount = 1286;
+    let activeStudentCount = initialActiveStudentCount;
     let chatSecondsLeft = 15 * 60;
     let waveAccepted = false;
     let liveCounterInterval;
@@ -601,9 +605,9 @@
       ghostCallout.textContent = `${sharedGhosts} ghosts share your interests.`;
 
       const featured = selectedInterests.slice(0, 2);
-      const preview = featured.length ? featured.join(', ') : 'Design, Startups';
+      const preview = featured.length ? featured.join(', ') : defaultSharedInterests.join(', ');
       matchInterests.textContent = `Shared: ${preview}`;
-      waveInterests.textContent = featured.length ? featured.join(' · ') : 'Design · Startups';
+      waveInterests.textContent = featured.length ? featured.join(' · ') : defaultSharedInterests.join(' · ');
     }
 
     function resetWaveState() {
@@ -628,7 +632,7 @@
       liveCounterInterval = setInterval(() => {
         if (currentScreen !== 0) return;
         activeStudentCount += Math.random() > 0.5 ? 1 : -1;
-        activeStudentCount = Math.max(1200, Math.min(1400, activeStudentCount));
+        activeStudentCount = Math.max(minActiveStudents, Math.min(maxActiveStudents, activeStudentCount));
         liveCount.textContent = activeStudentCount.toLocaleString();
       }, 2200);
     }

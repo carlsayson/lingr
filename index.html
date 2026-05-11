@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lingr Prototype Flow</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap');
+  </style>
+  <style>
     :root {
       --bg: #0a0820;
       --panel: #141137;
@@ -27,7 +30,7 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+`      font-family: 'DM Sans', ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       color: var(--text);
       background:
         radial-gradient(80vw 80vw at 10% -20%, rgba(143, 99, 255, 0.35), transparent),
@@ -93,6 +96,7 @@
       font-size: 1.28rem;
       font-weight: 700;
       letter-spacing: -0.015em;
+      font-family: 'Syne', ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     }
 
     .subtitle {
@@ -337,17 +341,11 @@
       font-variant-numeric: tabular-nums;
     }
 
-    .actions,
-    .global-controls {
+    .actions {
       display: flex;
       gap: 8px;
       align-items: center;
       justify-content: space-between;
-    }
-
-    .global-controls {
-      width: min(420px, 100%);
-      padding: 0 4px;
     }
 
     button {
@@ -359,7 +357,11 @@
       cursor: pointer;
       color: white;
       background: linear-gradient(145deg, #7f56ff, #6a3df2);
+      font-family: 'Syne', ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       transition: transform 140ms ease, opacity 140ms ease;
+    }
+    .hidden {
+      display: none !important;
     }
 
     button:hover:not(:disabled) { transform: translateY(-1px); }
@@ -449,7 +451,7 @@
         </div>
         <div class="actions">
           <button class="secondary" data-goto="0">Back</button>
-          <button data-goto="2">Confirm Desk</button>
+          <span class="badge">Scanning…</span>
         </div>
       </article>
 
@@ -465,7 +467,7 @@
         </div>
         <div class="actions">
           <button class="secondary" data-goto="1">Back</button>
-          <button id="interests-next" data-goto="3" disabled>Continue</button>
+          <button id="interests-next" data-goto="3" class="hidden">Continue</button>
         </div>
       </article>
 
@@ -508,7 +510,6 @@
         </div>
         <div class="actions">
           <button class="secondary" data-goto="3">Back</button>
-          <button data-goto="5">Next</button>
         </div>
       </article>
 
@@ -553,19 +554,11 @@
         </div>
       </article>
     </section>
-
-    <nav class="global-controls" aria-label="Screen controls">
-      <button id="prev-btn" class="ghost">Prev</button>
-      <button id="next-btn" class="ghost">Next</button>
-    </nav>
   </main>
 
   <script>
     const screens = [...document.querySelectorAll('.screen')];
     const indicator = document.getElementById('screen-indicator');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
-
     const liveCountEl = document.getElementById('live-count');
     const selectedCountEl = document.getElementById('selected-count');
     const selectionHintEl = document.getElementById('selection-hint');
@@ -588,7 +581,7 @@
     const CHAT_DURATION_MINUTES = 15;
     const LIVE_COUNT_INCREMENT_PROBABILITY = 0.5;
     const SECONDS_PER_MINUTE = 60;
-    const DEFAULT_SELECTED_INTERESTS = ['Design', 'AI'];
+    const DEFAULT_SELECTED_INTERESTS = [];
     const DEFAULT_SHARED_INTERESTS = ['Design', 'AI'];
 
     const interests = ['AI', 'Design', 'Gaming', 'Music', 'Startups', 'Fitness', 'Film', 'Books', 'Cooking'];
@@ -605,6 +598,7 @@
     let timerSeconds = CHAT_DURATION_MINUTES * SECONDS_PER_MINUTE;
     let liveCountIntervalId = null;
     let timerIntervalId = null;
+    let qrTimeoutId = null;
 
     function startLiveCountTicker() {
       if (liveCountIntervalId !== null) return;
@@ -627,11 +621,26 @@
         screen.classList.toggle('active', i === current);
       });
       indicator.textContent = `${current + 1} / ${screens.length}`;
-      prevBtn.disabled = current === 0;
-      nextBtn.disabled = current === screens.length - 1;
       if (current === 0) startLiveCountTicker();
       else stopLiveCountTicker();
-      if (current === 6) startTimer();
+      if (current === 1) startQrAutoAdvance();
+      else clearQrAutoAdvance();
+      if (current === 5) resetWave();
+      if (current === 6) startTimer(true);
+      else resetTimer();
+    }
+
+    function startQrAutoAdvance() {
+      clearQrAutoAdvance();
+      qrTimeoutId = setTimeout(() => {
+        showScreen(2);
+      }, 2000);
+    }
+
+    function clearQrAutoAdvance() {
+      if (qrTimeoutId === null) return;
+      clearTimeout(qrTimeoutId);
+      qrTimeoutId = null;
     }
 
     function renderPills() {
@@ -698,7 +707,8 @@
 
     function updateSelection() {
       selectedCountEl.textContent = selected.size;
-      interestsNext.disabled = selected.size === 0;
+      const isComplete = selected.size === MAX_INTEREST_SELECTION;
+      interestsNext.classList.toggle('hidden', !isComplete);
       renderPills();
       updateGhosts();
 
@@ -721,13 +731,30 @@
       }, WAVE_RESPONSE_DELAY_MS);
     }
 
+    function resetWave() {
+      waveComplete = false;
+      waveBtn.disabled = false;
+      openChatBtn.disabled = true;
+      waveStatus.textContent = 'Wave to send a low-pressure ping.';
+    }
+
     function formatTimer(seconds) {
       const m = String(Math.floor(seconds / SECONDS_PER_MINUTE)).padStart(2, '0');
       const s = String(seconds % SECONDS_PER_MINUTE).padStart(2, '0');
       return `${m}:${s}`;
     }
 
-    function startTimer() {
+    function resetTimer() {
+      if (timerIntervalId !== null) {
+        clearInterval(timerIntervalId);
+        timerIntervalId = null;
+      }
+      timerSeconds = CHAT_DURATION_MINUTES * SECONDS_PER_MINUTE;
+      chatTimer.textContent = formatTimer(timerSeconds);
+    }
+
+    function startTimer(reset) {
+      if (reset) resetTimer();
       if (timerIntervalId !== null) return;
       timerIntervalId = setInterval(() => {
         if (timerSeconds <= 0) return;
@@ -746,8 +773,6 @@
       });
     });
 
-    prevBtn.addEventListener('click', () => showScreen(current - 1));
-    nextBtn.addEventListener('click', () => showScreen(current + 1));
     waveBtn.addEventListener('click', startWave);
     window.addEventListener('beforeunload', () => {
       stopLiveCountTicker();

@@ -9,16 +9,18 @@
   </style>
   <style>
     :root {
-      --bg: #0a0820;
+      --bg: #0b0d14;
       --panel: #141137;
       --panel-2: #1e1a4d;
       --text: #f7f7ff;
       --muted: #b9b5df;
-      --purple: #8f63ff;
+      --purple: #7c4dff;
       --purple-soft: #b69cff;
       --green: #3ce4a1;
       --neutral-dot: #8f8aad;
       --danger: #ff6f91;
+      --glass: rgba(20, 18, 34, 0.55);
+      --glass-border: rgba(255, 255, 255, 0.1);
       --radius: 22px;
       --shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
     }
@@ -30,10 +32,10 @@
     body {
       margin: 0;
       min-height: 100vh;
-`      font-family: 'DM Sans', ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'DM Sans', ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(80vw 80vw at 10% -20%, rgba(143, 99, 255, 0.35), transparent),
+        radial-gradient(80vw 80vw at 10% -20%, rgba(124, 77, 255, 0.32), transparent),
         radial-gradient(70vw 70vw at 100% 120%, rgba(60, 228, 161, 0.2), transparent),
         var(--bg);
       display: grid;
@@ -52,7 +54,7 @@
       width: min(420px, 100%);
       aspect-ratio: 9 / 17;
       border-radius: 34px;
-      background: linear-gradient(180deg, #0e0b2a 0%, #070616 100%);
+      background: linear-gradient(180deg, #0f111b 0%, #090a12 100%);
       border: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: var(--shadow);
       position: relative;
@@ -69,13 +71,28 @@
       justify-content: space-between;
     }
 
+    .status-bar.glass {
+      height: auto;
+      margin: 10px 12px 0;
+      padding: 8px 12px;
+      border-radius: 14px;
+    }
+
+    .glass {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
     .screen {
       position: absolute;
-      inset: 34px 0 0;
+      inset: 52px 0 0;
       padding: 18px 16px 18px;
       opacity: 0;
-      transform: translateX(18px) scale(0.99);
-      transition: opacity 300ms ease, transform 300ms ease;
+      transform: translateY(18px) scale(0.99);
+      transition: opacity 400ms ease, transform 400ms ease;
       pointer-events: none;
       display: grid;
       grid-template-rows: auto 1fr auto;
@@ -95,7 +112,7 @@
     .title {
       font-size: 1.28rem;
       font-weight: 700;
-      letter-spacing: -0.015em;
+      letter-spacing: 0.02em;
       font-family: 'Syne', ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     }
 
@@ -107,7 +124,7 @@
     }
 
     .hero {
-      background: linear-gradient(150deg, rgba(143, 99, 255, 0.35), rgba(30, 26, 77, 0.8));
+      background: linear-gradient(150deg, rgba(124, 77, 255, 0.35), rgba(30, 26, 77, 0.8));
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: var(--radius);
       padding: 16px;
@@ -167,7 +184,9 @@
       padding: 8px 12px;
       border-radius: 999px;
       color: var(--muted);
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       cursor: pointer;
       transition: all 140ms ease;
       font-size: 0.85rem;
@@ -181,9 +200,23 @@
 
     .pill.selected {
       color: white;
-      background: rgba(143, 99, 255, 0.3);
+      background: rgba(124, 77, 255, 0.3);
       border-color: rgba(182, 156, 255, 1);
-      box-shadow: 0 0 0 2px rgba(143, 99, 255, 0.2) inset;
+      box-shadow: 0 0 0 2px rgba(124, 77, 255, 0.2) inset;
+    }
+
+    .pill.pop {
+      animation: pill-pop 220ms ease;
+    }
+
+    .pill-wrap.limit-reached .pill:not(.selected) {
+      opacity: 0.5;
+    }
+
+    @keyframes pill-pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
     }
 
     .counter {
@@ -202,6 +235,43 @@
       display: grid;
       gap: 10px;
       align-content: start;
+    }
+
+    .history-list {
+      max-height: 220px;
+      overflow-y: auto;
+      display: grid;
+      gap: 10px;
+      padding-right: 4px;
+    }
+
+    .history-item {
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 10px 12px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .history-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      width: fit-content;
+    }
+
+    .history-badge.match {
+      background: rgba(124, 77, 255, 0.25);
+      color: #efe9ff;
+      border-color: rgba(124, 77, 255, 0.6);
+      box-shadow: 0 0 12px rgba(124, 77, 255, 0.4);
     }
 
     .ghost-card {
@@ -263,6 +333,15 @@
       overflow: hidden;
     }
 
+    .map-pin {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      border: none;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+    }
+
     .pin {
       width: 12px;
       height: 12px;
@@ -273,12 +352,69 @@
     }
 
     .pin.you { background: var(--purple); width: 14px; height: 14px; }
-    .pin.match { background: var(--green); width: 14px; height: 14px; box-shadow: 0 0 0 0 rgba(60, 228, 161, 0.5); animation: pulse 1.8s infinite; }
+    .pin.match {
+      background: var(--green);
+      width: 14px;
+      height: 14px;
+      box-shadow: 0 0 0 0 rgba(60, 228, 161, 0.6);
+      animation: pulse 1.8s infinite;
+    }
 
     @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(60, 228, 161, 0.5); }
-      70% { box-shadow: 0 0 0 16px rgba(60, 228, 161, 0); }
+      0% { box-shadow: 0 0 0 0 rgba(60, 228, 161, 0.6); }
+      50% { box-shadow: 0 0 18px 6px rgba(60, 228, 161, 0.2); }
       100% { box-shadow: 0 0 0 0 rgba(60, 228, 161, 0); }
+    }
+
+    .mini-profile {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      transform: translateY(120%);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 240ms ease, opacity 240ms ease;
+      display: grid;
+      gap: 8px;
+    }
+
+    .mini-profile.active {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mini-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .mini-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .mini-tag {
+      font-size: 0.72rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #d8d4f3;
+      border: 1px solid transparent;
+    }
+
+    .mini-tag.match {
+      background: rgba(60, 228, 161, 0.22);
+      border-color: rgba(60, 228, 161, 0.5);
+      color: #ddfff1;
     }
 
     .match-card {
@@ -298,6 +434,16 @@
       gap: 10px;
       align-content: start;
       margin-top: 6px;
+    }
+
+    .msg.bounce {
+      animation: msg-bounce 320ms ease;
+    }
+
+    @keyframes msg-bounce {
+      0% { transform: scale(0.92); opacity: 0; }
+      60% { transform: scale(1.03); opacity: 1; }
+      100% { transform: scale(1); }
     }
 
     .msg {
@@ -329,10 +475,40 @@
       gap: 8px;
       padding: 10px 12px;
       border-radius: 14px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
       font-size: 0.82rem;
       color: var(--muted);
+    }
+
+    .chat-expired {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(9, 10, 18, 0.7);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease;
+    }
+
+    .chat-expired.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .expired-card {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(17, 20, 34, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center;
+      display: grid;
+      gap: 10px;
+      width: min(260px, 90%);
     }
 
     .timer {
@@ -356,7 +532,7 @@
       font-size: 0.86rem;
       cursor: pointer;
       color: white;
-      background: linear-gradient(145deg, #7f56ff, #6a3df2);
+      background: linear-gradient(145deg, #7c4dff, #5f33e6);
       font-family: 'Syne', ui-sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       transition: transform 140ms ease, opacity 140ms ease;
     }
@@ -420,7 +596,7 @@
 <body>
   <main class="prototype">
     <section class="phone" aria-label="Lingr prototype">
-      <div class="status-bar">
+      <div class="status-bar glass">
         <span aria-label="Lingr app">Lingr</span>
         <span id="screen-indicator">1 / 7</span>
       </div>
@@ -477,7 +653,7 @@
           <p class="subtitle">See who sat here before and what they were into.</p>
         </header>
         <div>
-          <div class="ghost-list" id="ghost-list"></div>
+          <div class="history-list" id="history-list"></div>
           <div class="callout" id="ghost-callout">2 ghosts share your interests.</div>
         </div>
         <div class="actions">
@@ -497,8 +673,19 @@
             <span class="pin" style="left: 42%; top: 68%;"></span>
             <span class="pin" style="left: 60%; top: 18%;"></span>
             <span class="pin" style="left: 75%; top: 42%;"></span>
-            <span class="pin you" style="left: 35%; top: 40%;" title="You"></span>
-            <span class="pin match" style="left: 62%; top: 55%;" title="Match"></span>
+            <button class="map-pin" type="button" style="left: 35%; top: 40%;" data-name="You" data-distance="0m" data-interests="Design,AI">
+              <span class="pin you" title="You"></span>
+            </button>
+            <button class="map-pin" type="button" style="left: 62%; top: 55%;" data-name="Ari" data-distance="22m" data-interests="Design,AI,Film">
+              <span class="pin match" title="Match"></span>
+            </button>
+          </div>
+          <div class="mini-profile glass" id="mini-profile">
+            <div class="mini-head">
+              <span id="mini-name">Ari · 22m away</span>
+              <button class="ghost" id="mini-close" type="button">Close</button>
+            </div>
+            <div class="mini-tags" id="mini-tags"></div>
           </div>
           <div class="match-card">
             <div>
@@ -552,6 +739,13 @@
           <button class="secondary" data-goto="5">Back</button>
           <button data-goto="0">Restart Flow</button>
         </div>
+        <div class="chat-expired" id="chat-expired">
+          <div class="expired-card">
+            <strong>Session Expired</strong>
+            <p class="subtitle">Start a new scan to reconnect.</p>
+            <button data-goto="1">Scan New QR</button>
+          </div>
+        </div>
       </article>
     </section>
   </main>
@@ -564,14 +758,21 @@
     const selectionHintEl = document.getElementById('selection-hint');
     const interestsNext = document.getElementById('interests-next');
     const pillWrap = document.getElementById('pill-wrap');
-    const ghostList = document.getElementById('ghost-list');
+    const historyList = document.getElementById('history-list');
     const ghostCallout = document.getElementById('ghost-callout');
     const liveShared = document.getElementById('live-shared');
+    const miniProfile = document.getElementById('mini-profile');
+    const miniName = document.getElementById('mini-name');
+    const miniTags = document.getElementById('mini-tags');
+    const miniClose = document.getElementById('mini-close');
     const waveTags = document.getElementById('wave-tags');
     const waveBtn = document.getElementById('wave-btn');
     const waveStatus = document.getElementById('wave-status');
     const openChatBtn = document.getElementById('open-chat-btn');
     const chatTimer = document.getElementById('chat-timer');
+    const chatExpired = document.getElementById('chat-expired');
+    const mapPins = [...document.querySelectorAll('.map-pin')];
+    const chatMessages = [...document.querySelectorAll('.message-list .msg')];
 
     const MAX_INTEREST_SELECTION = 3;
     const LIVE_COUNT_MIN = 200;
@@ -625,9 +826,16 @@
       else stopLiveCountTicker();
       if (current === 1) startQrAutoAdvance();
       else clearQrAutoAdvance();
+      if (current === 4) hideMiniProfile();
       if (current === 5) resetWave();
-      if (current === 6) startTimer(true);
-      else resetTimer();
+      if (current === 6) {
+        hideChatExpired();
+        startTimer(true);
+        bounceMessages();
+      } else {
+        resetTimer();
+        hideChatExpired();
+      }
     }
 
     function startQrAutoAdvance() {
@@ -653,19 +861,32 @@
         pill.textContent = interest;
         pill.setAttribute('aria-pressed', String(selected.has(interest)));
         pill.addEventListener('click', () => {
+          let changed = false;
           if (selected.has(interest)) {
             selected.delete(interest);
             selectionHintEl.textContent = '';
+            changed = true;
           } else if (selected.size < MAX_INTEREST_SELECTION) {
             selected.add(interest);
             selectionHintEl.textContent = '';
+            changed = true;
           } else {
             selectionHintEl.textContent = `You can pick up to ${MAX_INTEREST_SELECTION} interests.`;
           }
           updateSelection();
+          if (changed) triggerPillPopByInterest(interest);
         });
         pillWrap.appendChild(pill);
       });
+    }
+
+    function triggerPillPopByInterest(interest) {
+      const pill = [...pillWrap.querySelectorAll('.pill')]
+        .find((item) => item.textContent === interest);
+      if (!pill) return;
+      pill.classList.remove('pop');
+      void pill.offsetWidth;
+      pill.classList.add('pop');
     }
 
     function createGhostTagElement(tag) {
@@ -678,13 +899,13 @@
 
     function updateGhosts() {
       let matchedGhosts = 0;
-      ghostList.innerHTML = '';
+      historyList.innerHTML = '';
       ghosts.forEach((ghost) => {
         const hasMatch = ghost.tags.some((tag) => selected.has(tag));
         if (hasMatch) matchedGhosts += 1;
 
         const card = document.createElement('article');
-        card.classList.add('ghost-card');
+        card.classList.add('history-item');
 
         const meta = document.createElement('div');
         meta.classList.add('ghost-meta');
@@ -695,12 +916,17 @@
         when.textContent = ghost.when;
         meta.append(name, when);
 
+        const badge = document.createElement('span');
+        badge.classList.add('history-badge');
+        badge.textContent = hasMatch ? 'Shared Interests' : 'No Shared Interests';
+        if (hasMatch) badge.classList.add('match');
+
         const tags = document.createElement('div');
         tags.classList.add('tags');
         ghost.tags.forEach((tag) => tags.appendChild(createGhostTagElement(tag)));
 
-        card.append(meta, tags);
-        ghostList.appendChild(card);
+        card.append(meta, badge, tags);
+        historyList.appendChild(card);
       });
       ghostCallout.textContent = `${matchedGhosts} ghost${matchedGhosts === 1 ? '' : 's'} share your interests.`;
     }
@@ -709,15 +935,50 @@
       selectedCountEl.textContent = selected.size;
       const isComplete = selected.size === MAX_INTEREST_SELECTION;
       interestsNext.classList.toggle('hidden', !isComplete);
+      pillWrap.classList.toggle('limit-reached', isComplete);
       renderPills();
       updateGhosts();
-
       const sharedInterests = [...selected].slice(0, 2);
       const displaySharedInterests = sharedInterests.length ? sharedInterests : DEFAULT_SHARED_INTERESTS;
       liveShared.textContent = displaySharedInterests.join(', ');
       waveTags.innerHTML = displaySharedInterests
         .map((tag) => `<span class="tag match">${tag}</span>`)
         .join('');
+    }
+
+    function renderMiniProfile(name, distance, interestsList) {
+      const shared = interestsList.filter((tag) => selected.has(tag));
+      miniName.textContent = `${name} · ${distance} away`;
+      miniTags.innerHTML = '';
+      interestsList.forEach((tag) => {
+        const chip = document.createElement('span');
+        chip.classList.add('mini-tag');
+        if (shared.includes(tag)) chip.classList.add('match');
+        chip.textContent = tag;
+        miniTags.appendChild(chip);
+      });
+      miniProfile.classList.add('active');
+    }
+
+    function hideMiniProfile() {
+      miniProfile.classList.remove('active');
+    }
+
+    function bounceMessages() {
+      chatMessages.forEach((msg, index) => {
+        msg.classList.remove('bounce');
+        setTimeout(() => {
+          msg.classList.add('bounce');
+        }, 80 * index);
+      });
+    }
+
+    function showChatExpired() {
+      chatExpired.classList.add('active');
+    }
+
+    function hideChatExpired() {
+      chatExpired.classList.remove('active');
     }
 
     function startWave() {
@@ -763,6 +1024,7 @@
         if (timerSeconds === 0) {
           clearInterval(timerIntervalId);
           timerIntervalId = null;
+          showChatExpired();
         }
       }, 1000);
     }
@@ -772,6 +1034,17 @@
         showScreen(Number(btn.dataset.goto));
       });
     });
+
+    mapPins.forEach((pin) => {
+      pin.addEventListener('click', () => {
+        const name = pin.dataset.name || 'Anonymous';
+        const distance = pin.dataset.distance || '12m';
+        const interestsList = (pin.dataset.interests || '').split(',').filter(Boolean);
+        renderMiniProfile(name, distance, interestsList.length ? interestsList : DEFAULT_SHARED_INTERESTS);
+      });
+    });
+
+    miniClose.addEventListener('click', hideMiniProfile);
 
     waveBtn.addEventListener('click', startWave);
     window.addEventListener('beforeunload', () => {
